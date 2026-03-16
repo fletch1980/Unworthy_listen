@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Listen — UAL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#07000f;font-family:system-ui,sans-serif;min-height:100vh;padding:20px 16px 90px;}
+.page-header{margin-bottom:16px;}
+.page-header h1{font-size:20px;font-weight:900;color:#fff;}
+.page-header p{font-size:11px;color:#9b90b0;margin-top:2px;font-style:italic;}
+/* STATS */
+.stats-row{display:flex;gap:10px;margin-bottom:16px;}
+.stat-card{flex:1;background:#160028;border-radius:12px;padding:12px 8px;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:900;}
+.stat-lbl{font-size:10px;color:#9b90b0;margin-top:2px;}
+/* FILTER CHIPS */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;}
+.chip{flex-shrink:0;background:#160028;border:1px solid #2a1845;border-radius:20px;padding:6px 14px;font-size:12px;color:#9b90b0;cursor:pointer;white-space:nowrap;}
+.chip.active{background:linear-gradient(135deg,#7c3aed,#be185d);border-color:transparent;color:#fff;font-weight:700;}
+/* RESOURCE CARDS */
+.res-card{background:#160028;border:1px solid #2a1845;border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.res-type{display:inline-block;border-radius:99px;padding:2px 10px;font-size:10px;font-weight:700;margin-bottom:6px;}
+.res-title{font-size:14px;color:#fff;font-weight:700;margin-bottom:3px;}
+.res-note{font-size:12px;color:#9b90b0;line-height:1.4;margin-bottom:8px;}
+.res-meta{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+.sess-count{font-size:11px;color:#06b6d4;}
+.stars{font-size:12px;color:#fbbf24;}
+.takeaway{font-size:12px;color:#9b90b0;font-style:italic;border-top:1px solid #2a1845;padding-top:8px;line-height:1.5;margin-bottom:8px;}
+.res-btns{display:flex;gap:8px;}
+.btn-settings{flex:1;background:rgba(124,58,237,.15);border:1px solid #2a1845;border-radius:8px;color:#c084fc;font-size:12px;padding:7px 10px;cursor:pointer;}
+.btn-log{flex:1;background:linear-gradient(135deg,#7c3aed,#be185d);border:none;border-radius:8px;color:#fff;font-size:12px;padding:7px 10px;cursor:pointer;font-weight:700;}
+/* SESSION HISTORY */
+.sess-hist-toggle{width:100%;background:#0a0015;border:1px solid #2a1845;border-radius:8px;color:#5a5070;font-size:11px;padding:6px 14px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.sess-hist-body{background:#0a0015;border:1px solid #2a1845;border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.sess-entry{padding:8px 0;border-bottom:1px solid #2a1845;}
+.sess-entry:last-child{border-bottom:none;}
+.sess-entry-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.sess-num{font-size:11px;font-weight:700;color:#06b6d4;}
+.sess-date{font-size:10px;color:#5a5070;}
+.sess-notes{font-size:12px;color:#9b90b0;line-height:1.5;white-space:pre-wrap;}
+.sess-delete{background:none;border:none;color:#5a5070;font-size:11px;cursor:pointer;padding:0;}
+/* MODALS */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#160028;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;border:1px solid #3d2060;max-height:90vh;overflow-y:auto;}
+.modal-title{color:#fff;font-size:16px;font-weight:800;margin-bottom:2px;}
+.modal-sub{font-size:11px;color:#5a5070;margin-bottom:14px;}
+.modal-label{font-size:12px;color:#c084fc;font-weight:700;margin-bottom:8px;display:block;}
+.status-btns{display:flex;gap:8px;margin-bottom:14px;}
+.status-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:11px;cursor:pointer;font-weight:700;border:1px solid #2a1845;background:#0a0015;color:#9b90b0;}
+.status-btn.active{background:linear-gradient(135deg,#7c3aed,#be185d);border-color:transparent;color:#fff;}
+.sess-adj{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.adj-btn{background:#0a0015;border:1px solid #2a1845;border-radius:8px;color:#ede8f5;font-size:18px;width:36px;height:36px;cursor:pointer;}
+.modal-textarea{width:100%;background:#0a0015;border:1px solid #2a1845;border-radius:10px;padding:10px;color:#ede8f5;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;}
+.modal-btns{display:flex;gap:10px;margin-top:4px;}
+.modal-save{flex:1;background:linear-gradient(135deg,#7c3aed,#be185d);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;padding:12px;cursor:pointer;}
+.modal-cancel{background:#0a0015;border:1px solid #2a1845;border-radius:10px;color:#9b90b0;font-size:14px;padding:12px 18px;cursor:pointer;}
+/* NAV */
+.bot-nav{position:fixed;bottom:0;left:0;right:0;background:#0e0018;border-top:1px solid #2a1845;display:flex;z-index:100;max-width:480px;margin:0 auto;}
+.nav-btn{flex:1;padding:10px 4px 14px;border:none;background:none;font-size:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border-top:2px solid transparent;text-decoration:none;color:#5a5070;}
+.nav-btn.current{color:#c084fc;border-top-color:#c084fc;}
+.nav-icon{font-size:19px;}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:10px 22px;border-radius:20px;font-size:14px;font-weight:700;z-index:999;pointer-events:none;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🎧 Listen Tracker</h1>
+  <p>Podcasts · Audiobooks · Session logs</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-val" id="statCurrent" style="color:#06b6d4;">0</div><div class="stat-lbl">Listening</div></div>
+  <div class="stat-card"><div class="stat-val" id="statFinished" style="color:#34d399;">0</div><div class="stat-lbl">Finished</div></div>
+  <div class="stat-card"><div class="stat-val" id="statSessions" style="color:#c084fc;">0</div><div class="stat-lbl">Sessions</div></div>
+</div>
+
+<!-- FILTER CHIPS -->
+<div class="chips">
+  <div class="chip active" onclick="setFilter('all',this)">All</div>
+  <div class="chip" onclick="setFilter('current',this)">Listening</div>
+  <div class="chip" onclick="setFilter('finished',this)">Finished</div>
+  <div class="chip" onclick="setFilter('not_started',this)">Not Started</div>
+  <div class="chip" onclick="setFilter('podcast',this)">Podcasts</div>
+  <div class="chip" onclick="setFilter('audiobook',this)">Audiobooks</div>
+</div>
+
+<!-- RESOURCE LIST -->
+<div id="resourceList"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <div class="modal-title" id="settingsTitle"></div>
+    <div class="modal-sub" id="settingsType"></div>
+    <span class="modal-label">Status</span>
+    <div class="status-btns">
+      <button class="status-btn" id="rs-not_started" onclick="setStatus('not_started')">Not Started</button>
+      <button class="status-btn" id="rs-current"     onclick="setStatus('current')">Listening</button>
+      <button class="status-btn" id="rs-finished"    onclick="setStatus('finished')">Finished</button>
+    </div>
+    <span class="modal-label">Overall Rating</span>
+    <div style="display:flex;gap:6px;margin-bottom:14px;" id="starRow"></div>
+    <span class="modal-label">Overall Takeaway</span>
+    <textarea id="settingsTakeaway" class="modal-textarea" rows="3" placeholder="The one thing you're carrying from this resource overall."></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="modal-save" onclick="saveSettings()">Save ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION MODAL -->
+<div class="modal-bg" id="sessionModal">
+  <div class="modal">
+    <div class="modal-title" id="sessTitle"></div>
+    <div class="modal-sub" id="sessNum" style="color:#06b6d4;font-weight:700;"></div>
+    <span class="modal-label">Session Notes</span>
+    <textarea id="sessNotes" class="modal-textarea" rows="7" placeholder="What came up in this session? What resonated? What connected to your wound? What do you want to carry forward?" style="font-family:Georgia,serif;"></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeSession()">Cancel</button>
+      <button class="modal-save" onclick="saveSession()">Save Session 🎧</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bot-nav">
+  <a href="../ual-app" class="nav-btn"><span class="nav-icon">✦</span>Home</a>
+  <div class="nav-btn current"><span class="nav-icon">🎧</span>Listen</div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var RESOURCES=[
+  {id:'bgh',   title:'Black Girls Heal',                           type:'Podcast',   note:'Start: "Oldest Daughters & Childhood Emotional Neglect"'},
+  {id:'tpwfo', title:'The Place We Find Ourselves',                type:'Podcast',   note:'Search: abandonment wound, attachment injuries'},
+  {id:'ob',    title:'On Being with Krista Tippett',               type:'Podcast',   note:'Search: Nikki Giovanni, Lucille Clifton, grief'},
+  {id:'haabw', title:'Healing Anxious Attachment for Black Women', type:'Audiobook', note:'Begin from the start — 30–40 min per session'},
+  {id:'aal',   title:'All About Love',                             type:'Audiobook', note:'bell hooks — the philosophical foundation'},
+  {id:'tbkts', title:'The Body Keeps the Score',                   type:'Audiobook', note:'Bessel van der Kolk — physical wound language'},
+  {id:'moth',  title:'The Moth',                                   type:'Podcast',   note:'Study how people hold vulnerability with craft'},
+  {id:'hb',    title:'Hidden Brain',                               type:'Podcast',   note:'Search: shame, self-destructive choices, love'},
+  {id:'tfbg',  title:'Therapy for Black Girls',                    type:'Podcast',   note:'Dr. Joy Bradford — attachment, boundaries'},
+  {id:'rob',   title:'The Robcast',                                type:'Podcast',   note:'Search: unconditional love, Prodigal Son'},
+  {id:'hunger',title:'Hunger by Roxane Gay',                       type:'Audiobook', note:'Lyrical memoir — how to write the wound without performing it'},
+  {id:'heavy', title:'Heavy by Kiese Laymon',                      type:'Audiobook', note:'Letters to his mother — direct structural influence'}
+];
+
+var STATUS_COLORS={current:'#06b6d4', finished:'#34d399', not_started:'#5a5070'};
+var STATUS_LABELS={current:'🎧 Currently Listening', finished:'✅ Finished', not_started:'○ Not Started'};
+
+function gd(k,fb){try{var v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch(e){return fb;}}
+function sd(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function getResData(){return gd('ual_resources',{});}
+function setResData(v){sd('ual_resources',v);}
+function hexToRgb(hex){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return r+','+g+','+b;}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+
+var currentFilter='all';
+var histOpen={};
+
+function setFilter(f, el){
+  currentFilter=f;
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  renderList();
+}
+
+function renderStats(){
+  var rd=getResData(), cur=0, fin=0, total=0;
+  RESOURCES.forEach(function(r){
+    var d=rd[r.id]||{}, s=d.status||'not_started';
+    if(s==='current') cur++;
+    if(s==='finished') fin++;
+    total+=(d.sessionLog||[]).length;
+  });
+  document.getElementById('statCurrent').textContent=cur;
+  document.getElementById('statFinished').textContent=fin;
+  document.getElementById('statSessions').textContent=total;
+}
+
+function renderList(){
+  var rd=getResData();
+  var filtered=RESOURCES.filter(function(r){
+    var d=rd[r.id]||{}, s=d.status||'not_started';
+    if(currentFilter==='all') return true;
+    if(currentFilter==='current') return s==='current';
+    if(currentFilter==='finished') return s==='finished';
+    if(currentFilter==='not_started') return s==='not_started';
+    if(currentFilter==='podcast') return r.type==='Podcast';
+    if(currentFilter==='audiobook') return r.type==='Audiobook';
+    return true;
+  });
+
+  if(!filtered.length){
+    document.getElementById('resourceList').innerHTML='<div style="text-align:center;color:#5a5070;font-size:13px;padding:30px 0;font-style:italic;">No resources in this category.</div>';
+    return;
+  }
+
+  var html='';
+  filtered.forEach(function(r){
+    var d=rd[r.id]||{}, s=d.status||'not_started', sc=STATUS_COLORS[s];
+    var sessions=d.sessionLog||[], cnt=sessions.length;
+    var isAudio=r.type==='Audiobook';
+    var typeColor=isAudio?'#f9a8d4':'#c084fc';
+    var typeBg=isAudio?'rgba(190,24,93,.2)':'rgba(124,58,237,.2)';
+    var typeBorder=isAudio?'rgba(236,72,153,.4)':'rgba(168,85,247,.4)';
+    var hOpen=!!histOpen[r.id];
+
+    html+='<div class="res-card" style="border-left:3px solid '+sc+';">'
+      // type + status
+      +'<span class="res-type" style="background:'+typeBg+';border:1px solid '+typeBorder+';color:'+typeColor+';">'+r.type+'</span>'
+      +'<span style="font-size:10px;font-weight:700;color:'+sc+';margin-left:6px;">'+STATUS_LABELS[s]+'</span>'
+      // title + note
+      +'<div class="res-title">'+r.title+'</div>'
+      +'<div class="res-note">'+r.note+'</div>'
+      // meta row
+      +(s!=='not_started'
+        ?'<div class="res-meta">'
+          +'<span class="sess-count">🎧 '+cnt+' session'+(cnt!==1?'s':'')+' logged</span>'
+          +(d.rating?'<span class="stars">'+'★'.repeat(d.rating)+'☆'.repeat(5-d.rating)+'</span>':'')
+        +'</div>'
+        :'')
+      // takeaway
+      +(d.takeaway?'<div class="takeaway">"'+d.takeaway+'"</div>':'')
+      // session history toggle
+      +(cnt>0
+        ?'<button class="sess-hist-toggle" onclick="toggleHist(\''+r.id+'\')">'
+          +'<span>📋 Session History ('+cnt+')</span>'
+          +'<span>'+(hOpen?'▲':'▼')+'</span>'
+          +'</button>'
+          +(hOpen?renderSessionHistory(sessions,r.id):'')
+        :'')
+      // action buttons
+      +'<div class="res-btns">'
+        +'<button class="btn-settings" onclick="openSettings(\''+r.id+'\')">⚙️ Settings</button>'
+        +(s!=='not_started'?'<button class="btn-log" onclick="openSession(\''+r.id+'\')">+ Log Session</button>':'')
+      +'</div>'
+      +'</div>';
+  });
+  document.getElementById('resourceList').innerHTML=html;
+}
+
+function renderSessionHistory(sessions, rid){
+  if(!sessions||!sessions.length) return '';
+  var html='<div class="sess-hist-body">';
+  sessions.slice().reverse().forEach(function(s,i){
+    var realIdx=sessions.length-1-i;
+    html+='<div class="sess-entry">'
+      +'<div class="sess-entry-hdr">'
+        +'<span class="sess-num">Session '+(realIdx+1)+'</span>'
+        +'<div style="display:flex;align-items:center;gap:8px;">'
+          +'<span class="sess-date">'+s.date+'</span>'
+          +'<button class="sess-delete" onclick="deleteSession(\''+rid+'\','+realIdx+')">🗑</button>'
+        +'</div>'
+      +'</div>'
+      +(s.notes
+        ?'<div class="sess-notes">'+s.notes+'</div>'
+        :'<div style="font-size:11px;color:#3a3050;font-style:italic;">No notes for this session.</div>')
+      +'</div>';
+  });
+  return html+'</div>';
+}
+
+function toggleHist(id){
+  histOpen[id]=!histOpen[id];
+  renderList();
+}
+
+function deleteSession(rid, idx){
+  var rd=getResData();
+  if(rd[rid]&&rd[rid].sessionLog){
+    rd[rid].sessionLog.splice(idx,1);
+    rd[rid].sessions=rd[rid].sessionLog.length;
+    setResData(rd);
+    renderStats();
+    renderList();
+    toast('Session deleted 🗑');
+  }
+}
+
+// ── SETTINGS MODAL ────────────────────────────────────────────
+var settingsId='', settingsDraft={};
+
+function openSettings(id){
+  settingsId=id;
+  var r=RESOURCES.filter(function(x){return x.id===id;})[0];
+  var d=getResData()[id]||{status:'not_started',rating:0,takeaway:''};
+  settingsDraft={status:d.status||'not_started', rating:d.rating||0, takeaway:d.takeaway||''};
+  document.getElementById('settingsTitle').textContent=r.title;
+  document.getElementById('settingsType').textContent=r.type;
+  document.getElementById('settingsTakeaway').value=settingsDraft.takeaway;
+  updateStatusBtns();
+  updateStars();
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
+
+function setStatus(s){settingsDraft.status=s;updateStatusBtns();}
+function updateStatusBtns(){
+  ['not_started','current','finished'].forEach(function(s){
+    var btn=document.getElementById('rs-'+s);
+    btn.classList.toggle('active', settingsDraft.status===s);
+  });
+}
+function setRating(n){settingsDraft.rating=n;updateStars();}
+function updateStars(){
+  var html='';
+  for(var n=1;n<=5;n++){
+    html+='<button onclick="setRating('+n+')" style="font-size:22px;background:none;border:none;cursor:pointer;color:'+(n<=settingsDraft.rating?'#fbbf24':'#5a5070')+';">'+(n<=settingsDraft.rating?'★':'☆')+'</button>';
+  }
+  document.getElementById('starRow').innerHTML=html;
+}
+function saveSettings(){
+  settingsDraft.takeaway=document.getElementById('settingsTakeaway').value;
+  var rd=getResData();
+  if(!rd[settingsId]) rd[settingsId]={sessionLog:[]};
+  rd[settingsId].status=settingsDraft.status;
+  rd[settingsId].rating=settingsDraft.rating;
+  rd[settingsId].takeaway=settingsDraft.takeaway;
+  setResData(rd);
+  closeSettings();
+  renderStats();
+  renderList();
+  toast('Saved ✦');
+}
+
+// ── SESSION MODAL ─────────────────────────────────────────────
+var sessionId='';
+
+function openSession(id){
+  sessionId=id;
+  var r=RESOURCES.filter(function(x){return x.id===id;})[0];
+  var d=getResData()[id]||{};
+  var num=(d.sessionLog||[]).length+1;
+  document.getElementById('sessTitle').textContent=r.title;
+  document.getElementById('sessNum').textContent='Session '+num;
+  document.getElementById('sessNotes').value='';
+  document.getElementById('sessionModal').classList.add('open');
+}
+function closeSession(){document.getElementById('sessionModal').classList.remove('open');}
+function saveSession(){
+  var notes=document.getElementById('sessNotes').value.trim();
+  var rd=getResData();
+  if(!rd[sessionId]) rd[sessionId]={status:'current',sessionLog:[],rating:0,takeaway:''};
+  if(!rd[sessionId].sessionLog) rd[sessionId].sessionLog=[];
+  rd[sessionId].sessionLog.push({
+    notes:notes,
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  });
+  rd[sessionId].sessions=rd[sessionId].sessionLog.length;
+  setResData(rd);
+  closeSession();
+  histOpen[sessionId]=true;
+  renderStats();
+  renderList();
+  toast('Session logged 🎧');
+}
+
+document.getElementById('settingsModal').addEventListener('click',function(e){if(e.target===this)closeSettings();});
+document.getElementById('sessionModal').addEventListener('click',function(e){if(e.target===this)closeSession();});
+
+// ── INIT ──────────────────────────────────────────────────────
+renderStats();
+renderList();
+</script>
+</body>
+</html>
