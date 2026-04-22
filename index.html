@@ -14,11 +14,11 @@ body{background:#07000f;font-family:system-ui,sans-serif;min-height:100vh;paddin
 .stat-card{flex:1;background:#160028;border-radius:12px;padding:12px 8px;text-align:center;}
 .stat-val{font-size:1.5rem;font-weight:900;}
 .stat-lbl{font-size:10px;color:#9b90b0;margin-top:2px;}
-.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;}
-.chip{flex-shrink:0;background:#160028;border:1px solid #2a1845;border-radius:20px;padding:6px 14px;font-size:12px;color:#9b90b0;cursor:pointer;white-space:nowrap;}
-.chip.active{background:linear-gradient(135deg,#7c3aed,#be185d);border-color:transparent;color:#fff;font-weight:700;}
+.part-block{margin-bottom:24px;}
+.part-header{padding:12px 16px;border-radius:12px;margin-bottom:10px;}
+.part-section-label{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin:14px 0 8px;display:flex;align-items:center;gap:8px;}
+.part-section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08);}
 .res-card{background:#160028;border:1px solid #2a1845;border-radius:14px;padding:14px 16px;margin-bottom:10px;}
-.res-type{display:inline-block;border-radius:99px;padding:2px 10px;font-size:10px;font-weight:700;margin-bottom:6px;}
 .res-title{font-size:14px;color:#fff;font-weight:700;margin-bottom:3px;}
 .res-note{font-size:12px;color:#9b90b0;line-height:1.4;margin-bottom:8px;}
 .res-meta{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
@@ -28,6 +28,8 @@ body{background:#07000f;font-family:system-ui,sans-serif;min-height:100vh;paddin
 .res-btns{display:flex;gap:8px;}
 .btn-settings{flex:1;background:rgba(124,58,237,.15);border:1px solid #2a1845;border-radius:8px;color:#c084fc;font-size:12px;padding:7px 10px;cursor:pointer;}
 .btn-log{flex:1;background:linear-gradient(135deg,#7c3aed,#be185d);border:none;border-radius:8px;color:#fff;font-size:12px;padding:7px 10px;cursor:pointer;font-weight:700;}
+.seq-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:900;flex-shrink:0;margin-right:4px;}
+.status-pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:10px;font-weight:700;margin-bottom:6px;}
 .sess-hist-toggle{width:100%;background:#0a0015;border:1px solid #2a1845;border-radius:8px;color:#5a5070;font-size:11px;padding:6px 14px;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
 .sess-hist-body{background:#0a0015;border:1px solid #2a1845;border-radius:10px;padding:10px 12px;margin-bottom:8px;}
 .sess-entry{padding:8px 0;border-bottom:1px solid #2a1845;}
@@ -36,7 +38,7 @@ body{background:#07000f;font-family:system-ui,sans-serif;min-height:100vh;paddin
 .sess-num{font-size:11px;font-weight:700;color:#06b6d4;}
 .sess-date{font-size:10px;color:#5a5070;}
 .sess-notes{font-size:12px;color:#9b90b0;line-height:1.5;white-space:pre-wrap;}
-.sess-delete{background:none;border:none;color:#5a5070;font-size:11px;cursor:pointer;padding:0;}
+.sess-delete{background:none;border:none;color:#5a5070;font-size:11px;cursor:pointer;}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-bg.open{display:flex;}
 .modal{background:#160028;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;border:1px solid #3d2060;max-height:90vh;overflow-y:auto;}
@@ -69,15 +71,6 @@ body{background:#07000f;font-family:system-ui,sans-serif;min-height:100vh;paddin
   <div class="stat-card"><div class="stat-val" id="statCurrent" style="color:#06b6d4;">0</div><div class="stat-lbl">Listening</div></div>
   <div class="stat-card"><div class="stat-val" id="statFinished" style="color:#34d399;">0</div><div class="stat-lbl">Finished</div></div>
   <div class="stat-card"><div class="stat-val" id="statSessions" style="color:#c084fc;">0</div><div class="stat-lbl">Sessions</div></div>
-</div>
-
-<div class="chips">
-  <div class="chip active" onclick="setFilter('all',this)">All</div>
-  <div class="chip" onclick="setFilter('current',this)">Listening</div>
-  <div class="chip" onclick="setFilter('finished',this)">Finished</div>
-  <div class="chip" onclick="setFilter('not_started',this)">Not Started</div>
-  <div class="chip" onclick="setFilter('podcast',this)">Podcasts</div>
-  <div class="chip" onclick="setFilter('audiobook',this)">Audiobooks</div>
 </div>
 
 <div id="resourceList"></div>
@@ -122,29 +115,66 @@ body{background:#07000f;font-family:system-ui,sans-serif;min-height:100vh;paddin
   <a href="https://fletch1980.github.io/Unworthy/" class="nav-btn"><span class="nav-icon">✦</span>Home</a>
   <div class="nav-btn current"><span class="nav-icon">🎧</span>Listen</div>
 </nav>
-
 <div class="toast" id="toast"></div>
 
 <script>
-var RESOURCES=[
-  {id:'detached', title:'Detached — Sabrina Bendory',              type:'Audiobook', note:'Start now — anxious attachment, self-abandonment, stopping the cycle. Part One companion.'},
-  {id:'bgh',      title:'Black Girls Heal',                        type:'Podcast',   note:'Start: "Oldest Daughters & Childhood Emotional Neglect"'},
-  {id:'tpwfo',    title:'The Place We Find Ourselves',             type:'Podcast',   note:'Search: abandonment wound, attachment injuries'},
-  {id:'ob',       title:'On Being with Krista Tippett',            type:'Podcast',   note:'Search: Nikki Giovanni, Lucille Clifton, grief'},
-  {id:'haabw',    title:'Healing Anxious Attachment for Black Women', type:'Audiobook', note:'Begin from the start — 30–40 min per session'},
-  {id:'aal',      title:'All About Love',                          type:'Audiobook', note:'bell hooks — the philosophical foundation'},
-  {id:'tbkts',    title:'The Body Keeps the Score',                type:'Audiobook', note:'Bessel van der Kolk — physical wound language'},
-  {id:'moth',     title:'The Moth',                                type:'Podcast',   note:'Study how people hold vulnerability with craft'},
-  {id:'hb',       title:'Hidden Brain',                            type:'Podcast',   note:'Search: shame, self-destructive choices, love'},
-  {id:'tfbg',     title:'Therapy for Black Girls',                 type:'Podcast',   note:'Dr. Joy Bradford — attachment, boundaries'},
-  {id:'rob',      title:'The Robcast',                             type:'Podcast',   note:'Search: unconditional love, Prodigal Son'},
-  {id:'hunger',   title:'Hunger by Roxane Gay',                    type:'Audiobook', note:'Lyrical memoir — how to write the wound without performing it'},
-  {id:'heavy',    title:'Heavy by Kiese Laymon',                   type:'Audiobook', note:'Letters to his mother — direct structural influence'},
-  {id:'fightfind',title:'The Fight to Find Yourself — Joel Tudman',type:'Audiobook', note:'Save for Part Four (Letter 39+) — identity, calling, knowing you are enough in God'}
+var PARTS=[
+  {
+    label:'PART ONE · THE WOUND',
+    sub:'Days 1–84 · How did it get inside me?',
+    accent:'#ec4899',
+    audiobooks:[
+      {id:'detached',  seq:1, title:'Detached — Sabrina Bendory',                  note:'Start here. Anxious attachment, self-abandonment, stopping the cycle.'},
+      {id:'tbkts',     seq:2, title:'The Body Keeps the Score — Bessel van der Kolk',note:'Why the wound lives in your body, not just your mind.'},
+      {id:'haabw',     seq:3, title:'Healing Anxious Attachment for Black Women',   note:'The practical follow-up to Detached. 30–40 min per session.'}
+    ],
+    podcasts:[
+      {id:'tfbg',  title:'Therapy for Black Girls',         note:'Dr. Joy Bradford — attachment, boundaries. Run alongside everything.'},
+      {id:'bgh',   title:'Black Girls Heal',                note:'Start: "Oldest Daughters & Childhood Emotional Neglect"'},
+      {id:'hb',    title:'Hidden Brain',                    note:'Search specific episodes when a prompt touches something. Not linear.'},
+      {id:'tpwfo', title:'The Place We Find Ourselves',     note:'Search: abandonment wound, attachment injuries. Episode-based.'}
+    ]
+  },
+  {
+    label:'PART TWO · THE DAMAGE',
+    sub:'Days 85–182 · What did it cost me?',
+    accent:'#c084fc',
+    audiobooks:[
+      {id:'untamed', seq:1, title:'Untamed — Glennon Doyle',      note:'Woman who performed the life expected of her, lost herself, found her way back.'},
+      {id:'aal',     seq:2, title:'All About Love — bell hooks',   note:'The philosophical foundation of what love actually is.'},
+      {id:'hunger',  seq:3, title:'Hunger — Roxane Gay',           note:'Lyrical memoir — how to write the wound without performing it.'},
+      {id:'heavy',   seq:4, title:'Heavy — Kiese Laymon',          note:'Letters to his mother — direct structural influence on your own memoir.'}
+    ],
+    podcasts:[
+      {id:'moth', title:'The Moth',                        note:'Study how people hold vulnerability with craft.'},
+      {id:'ob',   title:'On Being with Krista Tippett',   note:'Search: Nikki Giovanni, Lucille Clifton, grief.'}
+    ]
+  },
+  {
+    label:'PART THREE · THE TURNING',
+    sub:'Days 183–252 · When did I start choosing myself?',
+    accent:'#34d399',
+    audiobooks:[
+      {id:'warofart', seq:1, title:'The War of Art — Steven Pressfield', note:'Short and brutal about resistance. Read when the abandonment pattern pulls.'}
+    ],
+    podcasts:[
+      {id:'wcdhth', title:'We Can Do Hard Things — Glennon Doyle', note:'Raw and personal. Good for driving or walking.'},
+      {id:'rob',    title:'The Robcast',                           note:'Search: unconditional love, Prodigal Son.'}
+    ]
+  },
+  {
+    label:'PART FOUR · THE RECLAMATION',
+    sub:'Days 253–291 · Who am I when I am free?',
+    accent:'#fbbf24',
+    audiobooks:[
+      {id:'fightfind', seq:1, title:'The Fight to Find Yourself — Joel Tudman', note:'Identity, calling, knowing you are enough in God. Save for this part.'}
+    ],
+    podcasts:[]
+  }
 ];
 
-var STATUS_COLORS={current:'#06b6d4', finished:'#34d399', not_started:'#5a5070'};
-var STATUS_LABELS={current:'🎧 Currently Listening', finished:'✅ Finished', not_started:'○ Not Started'};
+var STATUS_COLORS={current:'#06b6d4',finished:'#34d399',not_started:'#5a5070'};
+var STATUS_LABELS={current:'🎧 Listening',finished:'✅ Finished',not_started:'○ Not Started'};
 
 function gd(k,fb){try{var v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch(e){return fb;}}
 function sd(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -152,83 +182,60 @@ function getResData(){return gd('ual_resources',{});}
 function setResData(v){sd('ual_resources',v);}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 
-var currentFilter='all';
-var histOpen={};
+var histOpen={},partOpen={0:true,1:false,2:false,3:false};
 
-function setFilter(f,el){
-  currentFilter=f;
-  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
-  el.classList.add('active');
-  renderList();
-}
+function togglePart(pi){partOpen[pi]=!partOpen[pi];renderList();}
 
 function renderStats(){
   var rd=getResData(),cur=0,fin=0,total=0;
-  RESOURCES.forEach(function(r){
-    var d=rd[r.id]||{},s=d.status||'not_started';
-    if(s==='current') cur++;
-    if(s==='finished') fin++;
-    total+=(d.sessionLog||[]).length;
+  PARTS.forEach(function(p){
+    p.audiobooks.concat(p.podcasts).forEach(function(r){
+      var d=rd[r.id]||{},s=d.status||'not_started';
+      if(s==='current') cur++;
+      if(s==='finished') fin++;
+      total+=(d.sessionLog||[]).length;
+    });
   });
   document.getElementById('statCurrent').textContent=cur;
   document.getElementById('statFinished').textContent=fin;
   document.getElementById('statSessions').textContent=total;
 }
 
-function renderList(){
-  var rd=getResData();
-  var filtered=RESOURCES.filter(function(r){
-    var d=rd[r.id]||{},s=d.status||'not_started';
-    if(currentFilter==='all') return true;
-    if(currentFilter==='current') return s==='current';
-    if(currentFilter==='finished') return s==='finished';
-    if(currentFilter==='not_started') return s==='not_started';
-    if(currentFilter==='podcast') return r.type==='Podcast';
-    if(currentFilter==='audiobook') return r.type==='Audiobook';
-    return true;
-  });
+function renderCard(r,accent,isAudio){
+  var rd=getResData(),d=rd[r.id]||{},s=d.status||'not_started',sc=STATUS_COLORS[s];
+  var sessions=d.sessionLog||[],cnt=sessions.length;
+  var hOpen=!!histOpen[r.id];
+  var pillBg=isAudio?'rgba(190,24,93,.2)':'rgba(124,58,237,.2)';
+  var pillBorder=isAudio?'rgba(236,72,153,.4)':'rgba(168,85,247,.4)';
+  var pillColor=isAudio?'#f9a8d4':'#c084fc';
+  var pillLabel=isAudio?'📚 Audiobook':'🎙️ Podcast';
 
-  if(!filtered.length){
-    document.getElementById('resourceList').innerHTML='<div style="text-align:center;color:#5a5070;font-size:13px;padding:30px 0;font-style:italic;">No resources in this category.</div>';
-    return;
-  }
-
-  var html='';
-  filtered.forEach(function(r){
-    var d=rd[r.id]||{},s=d.status||'not_started',sc=STATUS_COLORS[s];
-    var sessions=d.sessionLog||[],cnt=sessions.length;
-    var isAudio=r.type==='Audiobook';
-    var typeColor=isAudio?'#f9a8d4':'#c084fc';
-    var typeBg=isAudio?'rgba(190,24,93,.2)':'rgba(124,58,237,.2)';
-    var typeBorder=isAudio?'rgba(236,72,153,.4)':'rgba(168,85,247,.4)';
-    var hOpen=!!histOpen[r.id];
-
-    html+='<div class="res-card" style="border-left:3px solid '+sc+';">'
-      +'<span class="res-type" style="background:'+typeBg+';border:1px solid '+typeBorder+';color:'+typeColor+';">'+r.type+'</span>'
-      +'<span style="font-size:10px;font-weight:700;color:'+sc+';margin-left:6px;">'+STATUS_LABELS[s]+'</span>'
-      +'<div class="res-title">'+r.title+'</div>'
-      +'<div class="res-note">'+r.note+'</div>'
-      +(s!=='not_started'
-        ?'<div class="res-meta">'
-          +'<span class="sess-count">🎧 '+cnt+' session'+(cnt!==1?'s':'')+' logged</span>'
-          +(d.rating?'<span class="stars">'+'★'.repeat(d.rating)+'☆'.repeat(5-d.rating)+'</span>':'')
-        +'</div>'
-        :'')
-      +(d.takeaway?'<div class="takeaway">"'+d.takeaway+'"</div>':'')
-      +(cnt>0
-        ?'<button class="sess-hist-toggle" onclick="toggleHist(\''+r.id+'\')">'
-          +'<span>📋 Session History ('+cnt+')</span>'
-          +'<span>'+(hOpen?'▲':'▼')+'</span>'
-          +'</button>'
-          +(hOpen?renderSessionHistory(sessions,r.id):'')
-        :'')
-      +'<div class="res-btns">'
-        +'<button class="btn-settings" onclick="openSettings(\''+r.id+'\')">⚙️ Settings</button>'
-        +(s!=='not_started'?'<button class="btn-log" onclick="openSession(\''+r.id+'\')">+ Log Session</button>':'')
+  var html='<div class="res-card" style="border-left:3px solid '+sc+';">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">'
+    +(isAudio&&r.seq?'<span class="seq-badge" style="background:'+accent+'22;color:'+accent+';border:1px solid '+accent+'44;">'+r.seq+'</span>':'')
+    +'<span class="status-pill" style="background:'+pillBg+';border:1px solid '+pillBorder+';color:'+pillColor+';">'+pillLabel+'</span>'
+    +'<span style="font-size:10px;font-weight:700;color:'+sc+';">'+STATUS_LABELS[s]+'</span>'
+    +'</div>'
+    +'<div class="res-title">'+r.title+'</div>'
+    +'<div class="res-note">'+r.note+'</div>'
+    +(s!=='not_started'
+      ?'<div class="res-meta">'
+        +'<span class="sess-count">🎧 '+cnt+' session'+(cnt!==1?'s':'')+' logged</span>'
+        +(d.rating?'<span class="stars">'+'★'.repeat(d.rating)+'☆'.repeat(5-d.rating)+'</span>':'')
       +'</div>'
-      +'</div>';
-  });
-  document.getElementById('resourceList').innerHTML=html;
+      :'')
+    +(d.takeaway?'<div class="takeaway">"'+d.takeaway+'"</div>':'')
+    +(cnt>0
+      ?'<button class="sess-hist-toggle" onclick="toggleHist(\''+r.id+'\')">'
+        +'<span>📋 Session History ('+cnt+')</span><span>'+(hOpen?'▲':'▼')+'</span></button>'
+        +(hOpen?renderSessionHistory(sessions,r.id):'')
+      :'')
+    +'<div class="res-btns">'
+      +'<button class="btn-settings" onclick="openSettings(\''+r.id+'\','+isAudio+')">⚙️ Settings</button>'
+      +(s!=='not_started'?'<button class="btn-log" onclick="openSession(\''+r.id+'\')">+ Log Session</button>':'')
+    +'</div>'
+    +'</div>';
+  return html;
 }
 
 function renderSessionHistory(sessions,rid){
@@ -244,9 +251,7 @@ function renderSessionHistory(sessions,rid){
           +'<button class="sess-delete" onclick="deleteSession(\''+rid+'\','+realIdx+')">🗑</button>'
         +'</div>'
       +'</div>'
-      +(s.notes
-        ?'<div class="sess-notes">'+s.notes+'</div>'
-        :'<div style="font-size:11px;color:#3a3050;font-style:italic;">No notes for this session.</div>')
+      +(s.notes?'<div class="sess-notes">'+s.notes+'</div>':'<div style="font-size:11px;color:#3a3050;font-style:italic;">No notes.</div>')
       +'</div>';
   });
   return html+'</div>';
@@ -259,25 +264,54 @@ function deleteSession(rid,idx){
   if(rd[rid]&&rd[rid].sessionLog){
     rd[rid].sessionLog.splice(idx,1);
     rd[rid].sessions=rd[rid].sessionLog.length;
-    setResData(rd);
-    renderStats();
-    renderList();
-    toast('Session deleted 🗑');
+    setResData(rd);renderStats();renderList();toast('Session deleted 🗑');
   }
 }
 
-var settingsId='',settingsDraft={};
+function renderList(){
+  var html='';
+  PARTS.forEach(function(p,pi){
+    var open=!!partOpen[pi];
+    html+='<div class="part-block">'
+      +'<button onclick="togglePart('+pi+')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:'+p.accent+'18;border:1px solid '+p.accent+'33;border-radius:'+(open?'12px 12px 0 0':'12px')+';cursor:pointer;text-align:left;margin-bottom:0;">'
+        +'<div>'
+          +'<div style="font-size:13px;font-weight:900;color:'+p.accent+';">'+p.label+'</div>'
+          +'<div style="font-size:11px;color:#5a5070;margin-top:2px;">'+p.sub+'</div>'
+        +'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+p.accent+';background:'+p.accent+'22;border-radius:20px;padding:4px 10px;flex-shrink:0;">'+(open?'▲ Hide':'▼ Show')+'</div>'
+      +'</button>';
 
-function openSettings(id){
+    if(open){
+      html+='<div style="border:1px solid '+p.accent+'33;border-top:none;border-radius:0 0 12px 12px;padding:12px 0 4px;margin-bottom:10px;">';
+      if(p.audiobooks.length){
+        html+='<div class="part-section-label" style="color:#f9a8d4;padding:0 16px;">📚 Audiobooks</div>';
+        p.audiobooks.forEach(function(r){html+=renderCard(r,p.accent,true);});
+      }
+      if(p.podcasts.length){
+        html+='<div class="part-section-label" style="color:#c084fc;padding:0 16px;">🎙️ Podcasts</div>';
+        p.podcasts.forEach(function(r){html+=renderCard(r,p.accent,false);});
+      }
+      html+='</div>';
+    } else {
+      html+='<div style="margin-bottom:10px;"></div>';
+    }
+
+    html+='</div>';
+  });
+  document.getElementById('resourceList').innerHTML=html;
+}
+
+var settingsId='',settingsDraft={};
+function openSettings(id,isAudio){
   settingsId=id;
-  var r=RESOURCES.filter(function(x){return x.id===id;})[0];
+  var r=null;
+  PARTS.forEach(function(p){p.audiobooks.concat(p.podcasts).forEach(function(x){if(x.id===id)r=x;});});
   var d=getResData()[id]||{status:'not_started',rating:0,takeaway:''};
   settingsDraft={status:d.status||'not_started',rating:d.rating||0,takeaway:d.takeaway||''};
   document.getElementById('settingsTitle').textContent=r.title;
-  document.getElementById('settingsType').textContent=r.type;
+  document.getElementById('settingsType').textContent=isAudio?'📚 Audiobook':'🎙️ Podcast';
   document.getElementById('settingsTakeaway').value=settingsDraft.takeaway;
-  updateStatusBtns();
-  updateStars();
+  updateStatusBtns();updateStars();
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettings(){document.getElementById('settingsModal').classList.remove('open');}
@@ -302,17 +336,14 @@ function saveSettings(){
   rd[settingsId].status=settingsDraft.status;
   rd[settingsId].rating=settingsDraft.rating;
   rd[settingsId].takeaway=settingsDraft.takeaway;
-  setResData(rd);
-  closeSettings();
-  renderStats();
-  renderList();
-  toast('Saved ✦');
+  setResData(rd);closeSettings();renderStats();renderList();toast('Saved ✦');
 }
 
 var sessionId='';
 function openSession(id){
   sessionId=id;
-  var r=RESOURCES.filter(function(x){return x.id===id;})[0];
+  var r=null;
+  PARTS.forEach(function(p){p.audiobooks.concat(p.podcasts).forEach(function(x){if(x.id===id)r=x;});});
   var d=getResData()[id]||{};
   var num=(d.sessionLog||[]).length+1;
   document.getElementById('sessTitle').textContent=r.title;
@@ -326,17 +357,10 @@ function saveSession(){
   var rd=getResData();
   if(!rd[sessionId]) rd[sessionId]={status:'current',sessionLog:[],rating:0,takeaway:''};
   if(!rd[sessionId].sessionLog) rd[sessionId].sessionLog=[];
-  rd[sessionId].sessionLog.push({
-    notes:notes,
-    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
-  });
+  rd[sessionId].sessionLog.push({notes:notes,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
   rd[sessionId].sessions=rd[sessionId].sessionLog.length;
-  setResData(rd);
-  closeSession();
-  histOpen[sessionId]=true;
-  renderStats();
-  renderList();
-  toast('Session logged 🎧');
+  setResData(rd);closeSession();histOpen[sessionId]=true;
+  renderStats();renderList();toast('Session logged 🎧');
 }
 
 document.getElementById('settingsModal').addEventListener('click',function(e){if(e.target===this)closeSettings();});
